@@ -40,6 +40,7 @@ html[data-tapd-theme-transitioning]::before {
     styleElement.textContent = css + transitionCSS;
     const effectiveEnabled = settings.followSystem ? getSystemPrefersDark() : settings.enabled;
     document.documentElement.dataset.tapdTheme = effectiveEnabled ? 'dark' : 'light';
+    // console.log('[TAPD Helper] 主题 CSS 已注入, enabled:', effectiveEnabled, 'settings:', JSON.stringify(settings));
   }
 
   /**
@@ -126,6 +127,15 @@ html[data-tapd-theme-transitioning]::before {
         // If new nodes were added, re-apply theme
         if (mut.addedNodes.length > 0) {
           needsReapply = true;
+          // Check for dialog/modal/popup elements being added
+          for (const node of mut.addedNodes) {
+            if (node.nodeType === 1 && node.classList) {
+              const cls = node.className;
+              if (typeof cls === 'string' && (cls.includes('el-dialog') || cls.includes('el-overlay') || cls.includes('dialog') || cls.includes('modal') || cls.includes('popup'))) {
+                // console.log('[TAPD Helper] 检测到弹窗元素:', node.tagName, cls);
+              }
+            }
+          }
           break;
         }
         // If attributes changed (especially style/data-*), re-apply
@@ -180,6 +190,58 @@ html[data-tapd-theme-transitioning]::before {
       if (count >= 24) {
         clearInterval(periodicTimer);
         periodicTimer = null;
+      }
+    }, 2000);
+  }
+
+  /**
+   * Periodic scan for dialog/modal elements in the DOM.
+   * Helps diagnose dialog structure issues that MutationObserver might miss.
+   */
+  let dialogScanCount = 0;
+  function startDialogScan() {
+    const scanInterval = setInterval(() => {
+      dialogScanCount++;
+      // Look for common dialog wrapper elements
+      const dialogElements = document.querySelectorAll(
+        '[class*="el-dialog__wrapper"], [class*="el-overlay"], [class*="v-modal"], ' +
+        '[class*="dialog-wrapper"], [class*="el-dialog"], [class*="el-dialog__body"], ' +
+        '[class*="el-dialog__header"], [class*="el-dialog__footer"], ' +
+        '[class*="status-transition"], [class*="transfer-form"], ' +
+        '[class*="tapd-dialog"], [class*="tapd-modal"], [class*="tapd-popup"], ' +
+        '[class*="el-drawer"], [class*="el-popup"], [class*="el-popper"]'
+      );
+      if (dialogElements.length > 0) {
+        for (const el of dialogElements) {
+          const rect = el.getBoundingClientRect();
+          const isVisible = rect.width > 0 && rect.height > 0;
+          const bg = getComputedStyle(el).backgroundColor;
+          const zIndex = getComputedStyle(el).zIndex;
+          const pos = getComputedStyle(el).position;
+          // Log all elements, visible or not, to understand the full structure
+          // console.log('[TAPD Helper] 弹窗元素:', el.tagName, el.className.slice(0,120),
+          //   'pos:', pos, 'z:', zIndex, 'bg:', bg, 'visible:', isVisible,
+          //   'rect:', Math.round(rect.width)+'x'+Math.round(rect.height));
+          // Also log the parent chain for the first transfer-form found
+          if (el.classList.contains('transfer-form') && el.parentElement) {
+            let parent = el.parentElement;
+            let depth = 0;
+            const chain = [];
+            while (parent && parent !== document.body && depth < 5) {
+              chain.push(parent.tagName + (parent.className ? '.' + parent.className.slice(0,80) : ''));
+              parent = parent.parentElement;
+              depth++;
+            }
+            if (chain.length > 0) {
+              // console.log('[TAPD Helper] transfer-form 父级链:', chain.join(' > '));
+            }
+          }
+        }
+      }
+      // Stop after 60 seconds
+      if (dialogScanCount >= 30) {
+        clearInterval(scanInterval);
+        // console.log('[TAPD Helper] 弹窗扫描已停止');
       }
     }, 2000);
   }
@@ -240,12 +302,15 @@ html[data-tapd-theme-transitioning]::before {
   }
 
   function toggleTheme() {
+    // const currentTheme = document.documentElement.dataset.tapdTheme;
+    // console.log('[TAPD Helper] 切换主题, 当前主题:', currentTheme);
     chrome.storage.sync.get('tapd_settings', data => {
       const settings = data.tapd_settings || { ...currentSettings };
       if (settings.followSystem) {
         settings.followSystem = false;
       }
       settings.enabled = !settings.enabled;
+      // console.log('[TAPD Helper] 切换后 enabled:', settings.enabled);
       chrome.storage.sync.set({ tapd_settings: settings });
     });
   }
@@ -256,6 +321,8 @@ html[data-tapd-theme-transitioning]::before {
     const newEnabled = settings.followSystem ? getSystemPrefersDark() : settings.enabled;
 
     currentSettings = { ...currentSettings, ...settings };
+
+    // console.log('[TAPD Helper] 应用设置, 旧状态:', oldEnabled, '新状态:', newEnabled, '设置:', JSON.stringify(settings));
 
     if (oldEnabled !== newEnabled) {
       const overlayBg = newEnabled ? '#ffffff' : '#1a1a1a';
@@ -282,6 +349,7 @@ html[data-tapd-theme-transitioning]::before {
 
   function loadAndApplySettings() {
     chrome.storage.sync.get('tapd_settings', data => {
+      // console.log('[TAPD Helper] 从 storage 加载设置:', JSON.stringify(data.tapd_settings));
       if (data.tapd_settings) {
         applySettings(data.tapd_settings);
       } else {
@@ -292,6 +360,7 @@ html[data-tapd-theme-transitioning]::before {
           temperature: 0,
           followSystem: true
         };
+        // console.log('[TAPD Helper] 无已保存设置，使用初始设置:', JSON.stringify(initialSettings));
         chrome.storage.sync.set({ tapd_settings: initialSettings });
         applySettings(initialSettings);
       }
@@ -300,6 +369,7 @@ html[data-tapd-theme-transitioning]::before {
 
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area === 'sync' && changes.tapd_settings) {
+      // console.log('[TAPD Helper] storage 设置已变更:', JSON.stringify(changes.tapd_settings.newValue));
       applySettings(changes.tapd_settings.newValue);
     }
   });
@@ -315,6 +385,8 @@ html[data-tapd-theme-transitioning]::before {
   });
 
   // Initial theme injection (before DOM is ready, for earliest possible dark mode)
+  // const initialPrefersDark = getSystemPrefersDark();
+  // console.log('[TAPD Helper] 扩展初始化, 系统深色模式偏好:', initialPrefersDark);
   injectThemeCSS({ enabled: getSystemPrefersDark(), brightness: 0, contrast: 0, temperature: 0, followSystem: true });
 
   // Load saved settings and apply
@@ -329,12 +401,16 @@ html[data-tapd-theme-transitioning]::before {
 
   // Start MutationObserver and periodic refresh after page is fully loaded
   if (document.readyState === 'complete') {
+    // console.log('[TAPD Helper] 页面已完全加载，启动 MutationObserver 和定时刷新');
     startMutationObserver();
     startPeriodicRefresh();
+    // startDialogScan();
   } else {
     window.addEventListener('load', () => {
+      // console.log('[TAPD Helper] 页面加载完成事件，启动 MutationObserver 和定时刷新');
       startMutationObserver();
       startPeriodicRefresh();
+      // startDialogScan();
     });
   }
 
