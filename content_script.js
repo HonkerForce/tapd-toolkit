@@ -188,6 +188,13 @@ html[data-tapd-theme-transitioning]::before {
     const btn = document.getElementById(FLOATING_BTN_ID);
     if (!btn) return;
     btn.dataset.active = enabled ? 'true' : 'false';
+    if (enabled) {
+      btn.style.background = '';
+      btn.style.color = '';
+    } else {
+      btn.style.background = '#f0f0f0';
+      btn.style.color = '#333333';
+    }
     btn.innerHTML = enabled
       ? '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg>'
       : '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/></svg>';
@@ -201,12 +208,17 @@ html[data-tapd-theme-transitioning]::before {
     const btn = document.createElement('button');
     btn.id = FLOATING_BTN_ID;
 
+    const effectiveEnabled = currentSettings.followSystem ? getSystemPrefersDark() : currentSettings.enabled;
+    const btnBg = effectiveEnabled ? '#2d2d2d' : '#f0f0f0';
+    const btnColor = effectiveEnabled ? '#d4d4d4' : '#333333';
+    const btnShadow = effectiveEnabled ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.1)';
+
     const style = document.createElement('style');
     style.textContent = [
       `#tapd-helper-toggle{position:fixed;bottom:20px;right:20px;z-index:2147483647;`,
       `width:44px;height:44px;border-radius:50%;border:none;`,
       `cursor:pointer;display:flex;align-items:center;justify-content:center;`,
-      `background:#2d2d2d;color:#d4d4d4;box-shadow:0 2px 12px rgba(0,0,0,0.3);`,
+      `background:${btnBg};color:${btnColor};box-shadow:0 2px 12px ${btnShadow};`,
       `transition:all .2s ease;opacity:.7}`,
       `#tapd-helper-toggle:hover{opacity:1;transform:scale(1.1)}`,
       `#tapd-helper-toggle[data-active=true]{background:#4a9eff;color:#fff}`
@@ -216,7 +228,6 @@ html[data-tapd-theme-transitioning]::before {
     btn.addEventListener('click', toggleTheme);
     document.body.appendChild(btn);
 
-    const effectiveEnabled = currentSettings.followSystem ? getSystemPrefersDark() : currentSettings.enabled;
     updateFloatingButton(effectiveEnabled);
   }
 
@@ -419,16 +430,22 @@ html[data-tapd-theme-transitioning]::before {
   let rc = 0;
   const rt = setInterval(() => { forceTableCellLabelColors(); rc++; if (rc >= 250) { clearInterval(rt); setInterval(forceTableCellLabelColors, 200); } }, 20);
 
-  // Inject dark mode styles into same-origin iframes (TinyMCE editor, etc.)
+  // Inject dark/light mode styles into same-origin iframes (TinyMCE editor, etc.)
   function setupIframeDarkMode() {
+    const isDark = document.documentElement.dataset.tapdTheme === 'dark';
     const iframes = document.querySelectorAll('iframe[class*="tox-"], iframe[id*="editor"], iframe[id*="richtext"]');
     for (const iframe of iframes) {
       try {
         const doc = iframe.contentDocument || iframe.contentWindow.document;
         if (doc && doc.body) {
-          const style = doc.createElement('style');
-          style.textContent = 'body,html{background-color:#222222!important;color:#e0e0e0!important}*{background-color:transparent!important;color:inherit}a{color:#4a9eff!important}';
-          doc.head.appendChild(style);
+          const existingStyle = doc.getElementById('tapd-helper-iframe-style');
+          if (existingStyle) existingStyle.remove();
+          if (isDark) {
+            const style = doc.createElement('style');
+            style.id = 'tapd-helper-iframe-style';
+            style.textContent = 'body,html{background-color:#222222!important;color:#e0e0e0!important}*{background-color:transparent!important;color:inherit}a{color:#4a9eff!important}';
+            doc.head.appendChild(style);
+          }
         }
       } catch(e) {
         // Cross-origin iframe, skip
