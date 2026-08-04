@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "TAPD Helper",
+  "version": "1.0.0",
+  "description": "TAPD 暗色模式助手 - 提供暗色主题、亮度/对比度/色温调节",
+  "permissions": ["storage"],
+  "host_permissions": ["*://*.tapd.cn/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.tapd.cn/*"],
+      "js": ["lib/dark-theme.js", "content_script.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "TAPD Helper",
+    "default_icon": {
+      "16": "images/icon16.png",
+      "48": "images/icon48.png",
+      "128": "images/icon128.png"
+    }
+  },
+  "options_page": "options/options.html",
+  "icons": {
+    "16": "images/icon16.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  }
+}

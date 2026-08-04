@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TAPD Helper - 设置</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>TAPD Helper</h1>
+      <p class="subtitle">自定义 TAPD 暗色模式</p>
+    </div>
+
+    <div class="section">
+      <h2>基础设置</h2>
+      <div class="setting-item">
+        <div class="setting-info">
+          <span class="setting-label">暗色模式</span>
+          <span class="setting-desc">开启或关闭暗色模式</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="dark-toggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="setting-item">
+        <div class="setting-info">
+          <span class="setting-label">跟随系统</span>
+          <span class="setting-desc">自动跟随操作系统暗色模式</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="follow-system">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>显示调节</h2>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <span class="setting-label">亮度</span>
+          <span class="setting-desc">调整背景明暗度数</span>
+        </div>
+        <div class="slider-group">
+          <input type="range" id="brightness" min="-100" max="100" value="0">
+          <span class="slider-value" id="brightness-val">0</span>
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <span class="setting-label">对比度</span>
+          <span class="setting-desc">调整文本与背景的对比度</span>
+        </div>
+        <div class="slider-group">
+          <input type="range" id="contrast" min="-100" max="100" value="0">
+          <span class="slider-value" id="contrast-val">0</span>
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <span class="setting-label">色温</span>
+          <span class="setting-desc">暖色护眼 / 冷色清爽</span>
+        </div>
+        <div class="slider-group">
+          <input type="range" id="temperature" min="-100" max="100" value="0">
+          <span class="slider-value" id="temperature-val">0</span>
+        </div>
+      </div>
+
+      <div class="setting-item no-border">
+        <div class="setting-info">
+          <span class="setting-label">重置</span>
+          <span class="setting-desc">恢复所有设置为默认值</span>
+        </div>
+        <button class="reset-btn" id="reset-defaults">重置</button>
+      </div>
+    </div>
+
+    <div class="section preview-section" id="preview-section">
+      <h2>实时预览</h2>
+      <div class="preview-container" id="preview-container">
+        <div class="preview-toolbar">
+          <span class="preview-logo">TAPD</span>
+          <div class="preview-nav">
+            <span class="preview-nav-item active">工作台</span>
+            <span class="preview-nav-item">需求</span>
+            <span class="preview-nav-item">迭代</span>
+            <span class="preview-nav-item">缺陷</span>
+          </div>
+          <div class="preview-user">
+            <span class="preview-avatar"></span>
+            <span class="preview-username">用户</span>
+          </div>
+        </div>
+        <div class="preview-body">
+          <div class="preview-sidebar">
+            <div class="preview-sidebar-item active">我的工作台</div>
+            <div class="preview-sidebar-item">项目列表</div>
+            <div class="preview-sidebar-item">待办事项</div>
+            <div class="preview-sidebar-item">统计报表</div>
+          </div>
+          <div class="preview-content">
+            <div class="preview-header-row">
+              <h3 class="preview-title">工作台</h3>
+              <div class="preview-actions">
+                <span class="preview-btn primary">新建</span>
+                <span class="preview-btn">筛选</span>
+              </div>
+            </div>
+            <div class="preview-cards">
+              <div class="preview-card">
+                <div class="preview-card-header">待办事项</div>
+                <div class="preview-card-body">
+                  <div class="preview-list-item">
+                    <span class="preview-checkbox"></span>
+                    <span>完成需求评审</span>
+                    <span class="preview-badge">高优先级</span>
+                  </div>
+                  <div class="preview-list-item">
+                    <span class="preview-checkbox"></span>
+                    <span>更新迭代计划</span>
+                    <span class="preview-badge accent">进行中</span>
+                  </div>
+                  <div class="preview-list-item">
+                    <span class="preview-checkbox checked"></span>
+                    <span class="done">修复登录页 Bug</span>
+                    <span class="preview-badge success">已完成</span>
+                  </div>
+                </div>
+              </div>
+              <div class="preview-card">
+                <div class="preview-card-header">统计概览</div>
+                <div class="preview-card-body stats">
+                  <div class="stat-item">
+                    <span class="stat-number">12</span>
+                    <span class="stat-label">进行中</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-number">48</span>
+                    <span class="stat-label">已完成</span>
+                  </div>
+                  <div class="stat-item">
+                    <span class="stat-number">3</span>
+                    <span class="stat-label">待处理</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="preview-table">
+              <div class="preview-table-header">
+                <span>标题</span>
+                <span>状态</span>
+                <span>优先级</span>
+                <span>处理人</span>
+              </div>
+              <div class="preview-table-row">
+                <span>实现用户登录功能</span>
+                <span><span class="preview-tag">进行中</span></span>
+                <span><span class="preview-tag danger">高</span></span>
+                <span class="text-muted">张三</span>
+              </div>
+              <div class="preview-table-row">
+                <span>优化首页加载速度</span>
+                <span><span class="preview-tag accent">待开始</span></span>
+                <span><span class="preview-tag warning">中</span></span>
+                <span class="text-muted">李四</span>
+              </div>
+              <div class="preview-table-row">
+                <span>修复数据导出异常</span>
+                <span><span class="preview-tag">进行中</span></span>
+                <span><span class="preview-tag danger">高</span></span>
+                <span class="text-muted">王五</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="preview-hint">预览仅展示效果，实际样式以 TAPD 页面为准。</p>
+    </div>
+
+    <div class="section">
+      <h2>快捷操作</h2>
+      <div class="shortcut-item">
+        <span>打开/关闭暗色模式</span>
+        <span class="shortcut-key">点击页面右下角浮动按钮</span>
+      </div>
+      <div class="shortcut-item">
+        <span>快速调节设置</span>
+        <span class="shortcut-key">点击工具栏扩展图标</span>
+      </div>
+      <div class="shortcut-item">
+        <span>打开完整设置页</span>
+        <span class="shortcut-key">右键扩展图标 → 选项</span>
+      </div>
+    </div>
+
+    <div class="section about">
+      <h2>关于</h2>
+      <p>TAPD Helper v1.0.0</p>
+      <p>为 TAPD 提供暗色模式支持。工作台 · 需求 · 迭代 · 缺陷 · Wiki 全覆盖。</p>
+    </div>
+
+    <div class="toast" id="toast">设置已保存</div>
+  </div>
+  <script src="options.js"></script>
+</body>
+</html>
